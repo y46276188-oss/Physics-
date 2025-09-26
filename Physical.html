@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>physics ball</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: sans-serif;
+            flex-direction: column;
+            user-select: none;
+        }
+        #game-container {
+            width: 400px;
+            height: 600px;
+            border: 5px solid #333;
+            background-color: #e0e0e0;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        #ball {
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 10px 10px, #ff8c00, #e65c00);
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transform: translate(-50%, -50%); /* Posisi transform relatif ke tengah bola */
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="ball"></div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const ball = document.getElementById('ball');
+
+        // Konstanta Fisika dan Geometri
+        const gravity = 0.98;
+        const restitution = 0.8;
+        const friction = 0.995;
+        const wallFriction = 0.8;
+        const speedSensitivity = 0.5; // Konstanta baru untuk mengatur sensitivitas gerakan
+
+        // Vektor Posisi dan Kecepatan Bola
+        let position = { x: gameContainer.clientWidth / 2, y: gameContainer.clientHeight / 4 };
+        let velocity = { x: 0, y: 0 };
+        let lastPosition = { x: position.x, y: position.y };
+        
+        // Posisi kursor/jari saat ini
+        let currentPointerPos = { x: 0, y: 0 };
+
+        // Variabel Kontrol
+        let isHolding = false;
+        
+        // Game Loop Utama
+        function updateGame() {
+            if (!isHolding) {
+                // Terapkan gravitasi dan gesekan
+                velocity.y += gravity;
+                velocity.x *= friction;
+                velocity.y *= friction;
+                
+                // Perbarui posisi bola berdasarkan kecepatan
+                position.x += velocity.x;
+                position.y += velocity.y;
+            } else {
+                // Saat dipegang, posisi bola mengikuti kursor
+                lastPosition.x = position.x;
+                lastPosition.y = position.y;
+
+                position.x = currentPointerPos.x;
+                position.y = currentPointerPos.y;
+
+                // Hitung kecepatan berdasarkan perbedaan posisi, dikalikan dengan sensitivitas
+                velocity.x = (position.x - lastPosition.x) * speedSensitivity;
+                velocity.y = (position.y - lastPosition.y) * speedSensitivity;
+            }
+            
+            // Deteksi dan Atasi Tabrakan dengan Dinding
+            if (position.x > gameContainer.clientWidth - ball.clientWidth / 2) {
+                position.x = gameContainer.clientWidth - ball.clientWidth / 2;
+                velocity.x *= -restitution * wallFriction;
+            } else if (position.x < ball.clientWidth / 2) {
+                position.x = ball.clientWidth / 2;
+                velocity.x *= -restitution * wallFriction;
+            }
+            if (position.y > gameContainer.clientHeight - ball.clientHeight / 2) {
+                position.y = gameContainer.clientHeight - ball.clientHeight / 2;
+                velocity.y *= -restitution;
+                velocity.x *= wallFriction;
+            } else if (position.y < ball.clientHeight / 2) {
+                position.y = ball.clientHeight / 2;
+                velocity.y *= -restitution;
+            }
+
+            // Update posisi bola di layar dengan transform
+            ball.style.transform = `translate(${position.x}px, ${position.y}px) translate(-50%, -50%)`;
+
+            requestAnimationFrame(updateGame);
+        }
+
+        // --- Event Listener untuk Kontrol Mouse dan Sentuhan ---
+        function handleStart(clientX, clientY) {
+            isHolding = true;
+            const rect = gameContainer.getBoundingClientRect();
+            // Perbarui posisi kursor/jari saat ini
+            currentPointerPos.x = clientX - rect.left;
+            currentPointerPos.y = clientY - rect.top;
+            
+            // Atur posisi awal bola agar pas di bawah kursor
+            position.x = currentPointerPos.x;
+            position.y = currentPointerPos.y;
+            lastPosition.x = position.x;
+            lastPosition.y = position.y;
+        }
+
+        function handleMove(clientX, clientY) {
+            if (isHolding) {
+                const rect = gameContainer.getBoundingClientRect();
+                // Perbarui posisi kursor/jari saat ini
+                currentPointerPos.x = clientX - rect.left;
+                currentPointerPos.y = clientY - rect.top;
+            }
+        }
+
+        function handleEnd() {
+            isHolding = false;
+        }
+
+        // Mouse Events
+        gameContainer.addEventListener('mousedown', (e) => handleStart(e.clientX, e.clientY));
+        gameContainer.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
+        gameContainer.addEventListener('mouseup', handleEnd);
+        gameContainer.addEventListener('mouseleave', handleEnd);
+
+        // Touch Events
+        gameContainer.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleStart(e.touches[0].clientX, e.touches[0].clientY);
+        });
+        gameContainer.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            handleMove(e.touches[0].clientX, e.touches[0].clientY);
+        });
+        gameContainer.addEventListener('touchend', handleEnd);
+
+        // Mulai Game
+        updateGame();
+    </script>
+
+</body>
+</html>
