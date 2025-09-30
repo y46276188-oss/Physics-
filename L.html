@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        #urlInput {
+            flex-grow: 1;
+            padding: 10px;
+            padding-right: 50px; /* Space for the button */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #goButton {
+            position: absolute;
+            right: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px 12px;
+            display: none; /* Hide by default */
+        }
+        
+        /* Show the button on mobile devices */
+        @media (max-width: 768px) {
+            #goButton {
+                display: block;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>pembuka Web</h1>
+        <div class="input-wrapper">
+            <input type="text" id="urlInput" placeholder="Masukkan tautan di sini...">
+            <button id="goButton">Go</button>
+        </div>
+        <p id="status" style="margin-top: 15px; text-align: center; color: green;"></p>
+    </div>
+
+    <script>
+        const urlInput = document.getElementById('urlInput');
+        const goButton = document.getElementById('goButton');
+        const status = document.getElementById('status');
+
+        function openUrl() {
+            let url = urlInput.value;
+            // Add 'https://' if it's missing
+            if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            
+            if (url) {
+                // Open the URL in a new tab
+                window.open(url, '_blank');
+                status.textContent = 'Web dibuka!';
+            } else {
+                status.textContent = 'Silakan masukkan tautan yang valid.';
+                status.style.color = 'red';
+            }
+        }
+
+        // Trigger the function when the Enter key is pressed
+        urlInput.addEventListener('keypress', function(event) {
+            // Check if the key pressed is 'Enter'
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default form submission
+                openUrl();
+            }
+        });
+
+        // Trigger the function when the "Go" button is clicked
+        goButton.addEventListener('click', openUrl);
+    </script>
+</body>
+</html>
